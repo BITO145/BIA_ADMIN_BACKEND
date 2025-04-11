@@ -154,3 +154,33 @@ export const createEvent = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+export const enrollMember = async (req, res) => {
+  try {
+    const { chapterId } = req.params;
+    const { memberId } = req.body;
+
+    if (!memberId) {
+      return res.status(400).json({ error: "memberId is required" });
+    }
+
+    // Find and update the chapter by pushing memberId (using $addToSet to avoid duplicates)
+    const updatedChapter = await chapterModel.findByIdAndUpdate(
+      chapterId,
+      { $addToSet: { members: memberId } },
+      { new: true }
+    );
+
+    if (!updatedChapter) {
+      return res.status(404).json({ error: "Chapter not found" });
+    }
+
+    res.status(200).json({
+      message: "Member enrolled in chapter successfully",
+      chapter: updatedChapter,
+    });
+  } catch (error) {
+    console.error("Error enrolling member in chapter:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
