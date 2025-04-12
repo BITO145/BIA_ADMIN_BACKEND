@@ -30,12 +30,11 @@ const apiLimiter = rateLimit({
   message: "Too many requests from this IP, please try again after 15 minutes",
 });
 
-app.use("/api/", apiLimiter);
 app.use("/auth", apiLimiter, authRoutes);
 app.use("/sa", apiLimiter, superAdminRoutes);
 
 // Start the server
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
 });
