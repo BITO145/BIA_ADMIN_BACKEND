@@ -2,7 +2,7 @@ import centralUserModel from "../models/centralUserModel.js";
 import chapterModel from "../models/chapterModel.js";
 import eventModel from "../models/eventModel.js";
 import bcrypt from "bcrypt";
-import { sendEventToWebhook } from "../utils/webhookSender.js"; // 
+import { sendEventToWebhook } from "../utils/webhookSender.js";
 
 // ✅ Create Subadmin
 export const createSubAdmin = async (req, res) => {
@@ -10,14 +10,18 @@ export const createSubAdmin = async (req, res) => {
     const { name, email, username, password } = req.body;
 
     if (req.user.role !== "superadmin") {
-      return res.status(403).json({ error: "Only superadmins can create subadmins" });
+      return res
+        .status(403)
+        .json({ error: "Only superadmins can create subadmins" });
     }
 
     const existingUser = await centralUserModel.findOne({
       $or: [{ email }, { username }],
     });
     if (existingUser) {
-      return res.status(400).json({ error: "User with this email or username already exists" });
+      return res
+        .status(400)
+        .json({ error: "User with this email or username already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -31,7 +35,9 @@ export const createSubAdmin = async (req, res) => {
       createdBy: req.user.id,
     });
 
-    res.status(201).json({ message: "Subadmin created successfully", user: newSubAdmin });
+    res
+      .status(201)
+      .json({ message: "Subadmin created successfully", user: newSubAdmin });
   } catch (error) {
     console.error("Error creating subadmin:", error);
     res.status(500).json({ error: "Server error" });
@@ -51,7 +57,9 @@ export const createChapter = async (req, res) => {
         (feature) => feature.feature === "addChapter" && feature.allowed
       )
     ) {
-      return res.status(403).json({ error: "You do not have permission to create a chapter" });
+      return res
+        .status(403)
+        .json({ error: "You do not have permission to create a chapter" });
     }
 
     const { chapterName, zone, description, chapterLeadName } = req.body;
@@ -68,7 +76,9 @@ export const createChapter = async (req, res) => {
       chapterLeadName,
     });
 
-    res.status(201).json({ message: "Chapter created successfully", chapter: newChapter });
+    res
+      .status(201)
+      .json({ message: "Chapter created successfully", chapter: newChapter });
   } catch (error) {
     console.error("Error creating chapter:", error);
     res.status(500).json({ error: "Server error" });
@@ -98,7 +108,8 @@ export const createEvent = async (req, res) => {
       !chapter
     ) {
       return res.status(400).json({
-        error: "Please provide eventName, eventStartTime, eventEndTime, eventDate, location, and chapter.",
+        error:
+          "Please provide eventName, eventStartTime, eventEndTime, eventDate, location, and chapter.",
       });
     }
 
@@ -134,11 +145,12 @@ export const createEvent = async (req, res) => {
       location,
       description,
       membershipRequired,
-      chapterName: chapterDoc.chapterName,
-      zone: chapterDoc.zone,
+      chapter: chapterDoc._id, // ✅ send ObjectId
     });
 
-    res.status(201).json({ message: "Event created successfully", event: newEvent });
+    res
+      .status(201)
+      .json({ message: "Event created successfully", event: newEvent });
   } catch (error) {
     console.error("Error creating event:", error);
     res.status(500).json({ error: "Server error" });
