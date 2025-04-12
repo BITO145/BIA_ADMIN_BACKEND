@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/authRoutes.js";
 import superAdminRoutes from "./routes/superAdminRoutes.js";
 import connectDB from "./db/db.js";
+import webhookRoutes from "./routes/webhookRoutes.js";
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+
 // Rate limiting – 95 request per 15 minutes
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -33,6 +35,8 @@ const apiLimiter = rateLimit({
 app.use("/api/", apiLimiter);
 app.use("/auth", apiLimiter, authRoutes);
 app.use("/sa", apiLimiter, superAdminRoutes);
+app.use("/webhook", webhookRoutes);
+
 
 // Start the server
 const PORT = process.env.PORT || 8080;
