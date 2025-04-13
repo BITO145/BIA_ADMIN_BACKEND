@@ -2,7 +2,10 @@ import centralUserModel from "../models/centralUserModel.js";
 import chapterModel from "../models/chapterModel.js";
 import eventModel from "../models/eventModel.js";
 import bcrypt from "bcrypt";
-import { sendEventToWebhook } from "../utils/webhookSender.js";
+import {
+  sendEventToWebhook,
+  sendChapterToWebhook,
+} from "../utils/webhookSender.js";
 
 // ✅ Create Subadmin
 export const createSubAdmin = async (req, res) => {
@@ -44,13 +47,12 @@ export const createSubAdmin = async (req, res) => {
   }
 };
 
-// ✅ Create Chapter
+// ✅ Create Chapter + Webhook
 export const createChapter = async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: "Not authenticated" });
     }
-
     if (
       req.user.role !== "superadmin" &&
       !req.user.allowedFeatures?.some(
@@ -59,16 +61,17 @@ export const createChapter = async (req, res) => {
     ) {
       return res
         .status(403)
-        .json({ error: "You do not have permission to create a chapter" });
+        .json({ error: "No permission to create a chapter" });
     }
 
     const { chapterName, zone, description, chapterLeadName } = req.body;
     if (!chapterName || !zone || !chapterLeadName) {
       return res.status(400).json({
-        error: "chapterName, zone, and chapterLeadName are required fields",
+        error: "chapterName, zone, and chapterLeadName are required.",
       });
     }
 
+    // Create the chapter
     const newChapter = await chapterModel.create({
       chapterName,
       zone,
@@ -76,9 +79,25 @@ export const createChapter = async (req, res) => {
       chapterLeadName,
     });
 
-    res
-      .status(201)
-      .json({ message: "Chapter created successfully", chapter: newChapter });
+    // Optionally, log newChapter if needed
+    console.log("Chapter created:", newChapter);
+
+    // Send webhook to membership portal
+    // You might want to send only the fields needed on the membership side.
+    await sendChapterToWebhook({
+      hmrsChapterId: newChapter._id, // use a unique key for membership reference
+      chapterName: newChapter.chapterName,
+      zone: newChapter.zone,
+      description: newChapter.description,
+      chapterLeadName: newChapter.chapterLeadName,
+      events: newChapter.events,
+      createdAt: newChapter.createdAt,
+    });
+
+    res.status(201).json({
+      message: "Chapter created successfully",
+      chapter: newChapter,
+    });
   } catch (error) {
     console.error("Error creating chapter:", error);
     res.status(500).json({ error: "Server error" });
