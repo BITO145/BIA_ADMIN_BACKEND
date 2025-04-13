@@ -16,13 +16,14 @@ export const requireFeature = (featureName) => {
       }
       // Superadmins are always allowed. Subadmins need specific feature permission.
       if (
-        user.role === "superadmin" ||
-        (user.allowedFeatures &&
-          user.allowedFeatures.some(
-            (f) => f.feature === featureName && f.allowed
-          ))
+        (user.role === "superadmin" || user.role === "subadmin") &&
+        (user.role === "superadmin" ||
+          (user.allowedFeatures &&
+            user.allowedFeatures.some(
+              (f) => f.feature === featureName && f.allowed
+            )))
       ) {
-        req.user = user; // Attach user data to request
+        req.user = user;
         next();
       } else {
         return res
