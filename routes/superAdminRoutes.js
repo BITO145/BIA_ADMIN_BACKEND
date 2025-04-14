@@ -6,6 +6,7 @@ import {
   createSubAdmin,
   enrollMember,
   getChapters,
+  getEvents,
   getSubAdmins,
 } from "../controllers/superAdminController.js";
 
@@ -28,5 +29,8 @@ router.get("/get-subadmin", requireFeature(), getSubAdmins);
 
 //get chapter
 router.get("/get-chapter", protect, getChapters);
+
+//get events
+router.get("/get-event", protect, getEvents);
 
 export default router;

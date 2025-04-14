@@ -243,3 +243,18 @@ export const getChapters = async (req, res) => {
     res.status(500).json({ error: "Server error fetching chapters." });
   }
 };
+
+// ✅ fetch events
+export const getEvents = async (req, res) => {
+  try {
+    const events = await eventModel
+      .find({})
+      .populate("chapter", "chapterName zone chapterLeadName") // populate only select fields from Chapter
+      .lean();
+
+    res.status(200).json({ events });
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    res.status(500).json({ error: "Server error fetching events." });
+  }
+};

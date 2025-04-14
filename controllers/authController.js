@@ -38,6 +38,16 @@ export const login = async (req, res) => {
     if (!user) {
       return res.status(400).json({ error: "User not found" });
     }
+
+    // Check if user role is allowed to login
+    if (!["superadmin", "subadmin"].includes(user.role)) {
+      return res
+        .status(403)
+        .json({
+          error: "Only superadmin or subadmin roles are allowed to login",
+        });
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ error: "Invalid password" });
