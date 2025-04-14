@@ -118,6 +118,7 @@ export const createEvent = async (req, res) => {
       chapter,
     } = req.body;
 
+    // Validate required fields
     if (
       !eventName ||
       !eventStartTime ||
@@ -132,39 +133,49 @@ export const createEvent = async (req, res) => {
       });
     }
 
+    // Extract the date portion (e.g., "2025-05-01" from "2025-05-01T00:00:00.000Z" or "2025-05-01")
+    const datePortion = eventDate.split("T")[0];
+
+    // Combine the date portion with the provided time strings
+    const eventStartDateTime = new Date(`${datePortion}T${eventStartTime}:00Z`);
+    const eventEndDateTime = new Date(`${datePortion}T${eventEndTime}:00Z`);
+
+    // Verify that the chapter exists
     const chapterDoc = await chapterModel.findById(chapter);
     if (!chapterDoc) {
       return res.status(404).json({ error: "Chapter not found." });
     }
 
+    // Create the event: here, eventDate remains as received (or you can also derive it from datePortion)
     const newEvent = await eventModel.create({
       eventName,
-      eventStartTime,
-      eventEndTime,
-      eventDate,
+      eventStartTime: eventStartDateTime,
+      eventEndTime: eventEndDateTime,
+      eventDate: new Date(eventDate),
       location,
       description,
       membershipRequired,
       chapter,
     });
 
+    // Update the chapter document to include the new event
     await chapterModel.findByIdAndUpdate(
       chapter,
       { $push: { events: newEvent._id } },
       { new: true }
     );
 
-    // ✅ Send Webhook
+    // Send webhook to membership portal
     await sendEventToWebhook({
       _id: newEvent._id,
       eventName,
-      eventStartTime,
-      eventEndTime,
-      eventDate,
+      eventStartTime: eventStartDateTime,
+      eventEndTime: eventEndDateTime,
+      eventDate: new Date(eventDate),
       location,
       description,
       membershipRequired,
-      chapter: chapterDoc._id, // ✅ send ObjectId
+      chapter: chapterDoc._id, // send chapter's ObjectId
     });
 
     res
