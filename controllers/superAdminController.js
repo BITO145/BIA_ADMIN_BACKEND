@@ -205,3 +205,41 @@ export const enrollMember = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+// ✅ fetch subadmins
+export const getSubAdmins = async (req, res) => {
+  try {
+    // Fetch all users with role "subadmin", only selecting username, email, and role fields.
+    const subAdmins = await centralUserModel
+      .find({ role: "subadmin" })
+      .select("name username email role")
+      .lean();
+
+    // Map each subadmin document to a new object with "id" instead of _id.
+    const formattedSubAdmins = subAdmins.map((admin) => ({
+      id: admin._id.toString(),
+      name: admin.name,
+      username: admin.username,
+      email: admin.email,
+      role: admin.role,
+    }));
+
+    res.status(200).json({ subAdmins: formattedSubAdmins });
+  } catch (error) {
+    console.error("Error fetching subadmins:", error);
+    res.status(500).json({ error: "Server error fetching subadmins." });
+  }
+};
+
+// ✅ fetch chapters
+export const getChapters = async (req, res) => {
+  try {
+    // Find all chapters, populate the events field, and use lean() to return plain objects.
+    const chapters = await chapterModel.find({}).populate("events").lean();
+
+    res.status(200).json({ chapters });
+  } catch (error) {
+    console.error("Error fetching chapters:", error);
+    res.status(500).json({ error: "Server error fetching chapters." });
+  }
+};

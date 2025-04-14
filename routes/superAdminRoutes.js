@@ -1,10 +1,12 @@
 import { Router } from "express";
-import { requireFeature } from "../middlewares/protect.js";
+import { protect, requireFeature } from "../middlewares/protect.js";
 import {
   createChapter,
   createEvent,
   createSubAdmin,
   enrollMember,
+  getChapters,
+  getSubAdmins,
 } from "../controllers/superAdminController.js";
 
 const router = Router();
@@ -20,5 +22,11 @@ router.post("/event", requireFeature("addEvent"), createEvent); //tested
 
 //enroll member
 router.post("/chapters/:chapterId/enrollMember", enrollMember);
+
+//fetch subadmins
+router.get("/get-subadmin", requireFeature(), getSubAdmins);
+
+//get chapter
+router.get("/get-chapter", protect, getChapters);
 
 export default router;

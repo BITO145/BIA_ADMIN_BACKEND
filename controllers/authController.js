@@ -53,8 +53,50 @@ export const login = async (req, res) => {
       secure: process.env.NODE_ENV === "production", // use true in production
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
-    res.status(200).json({ message: "Login successful" });
+    const userData = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      // include other non-sensitive fields as necessary
+    };
+    res.status(200).json({ message: "Login successful", user: userData });
   } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const profile = async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await centralUserModel
+      .findById(decoded.id)
+      .select("-password");
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json({ user });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const logout = (req, res) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/", // Ensure this matches the login cookie settings
+    });
+    res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    console.error("Logout error:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
