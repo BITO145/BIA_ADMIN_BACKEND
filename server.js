@@ -15,7 +15,11 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:8000"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:8000",
+      "http://localhost:5174",
+    ],
     credentials: true,
   })
 );
@@ -26,7 +30,7 @@ app.use(cookieParser());
 // Rate limiting – 95 request per 15 minutes
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 95,
+  max: 195,
   message: "Too many requests from this IP, please try again after 15 minutes",
 });
 
