@@ -79,18 +79,17 @@ export const createChapter = async (req, res) => {
       chapterLeadName,
     });
 
-    // Optionally, log newChapter if needed
-    console.log("Chapter created:", newChapter);
-
-    // Send webhook to membership portal
-    // You might want to send only the fields needed on the membership side.
     await sendChapterToWebhook({
-      hmrsChapterId: newChapter._id, // use a unique key for membership reference
+      hmrsChapterId: newChapter._id,
       chapterName: newChapter.chapterName,
       zone: newChapter.zone,
       description: newChapter.description,
       chapterLeadName: newChapter.chapterLeadName,
       events: newChapter.events,
+      members: newChapter.members.map((m) => ({
+        memberId: m.memberId,
+        name: m.name,
+      })),
       createdAt: newChapter.createdAt,
     });
 
