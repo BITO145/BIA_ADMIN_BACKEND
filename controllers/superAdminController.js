@@ -191,15 +191,19 @@ export const createEvent = async (req, res) => {
 export const enrollMember = async (req, res) => {
   try {
     const { chapterId } = req.params;
-    const { memberId } = req.body;
+    const { memberId, name, email, phone } = req.body;
 
-    if (!memberId) {
-      return res.status(400).json({ error: "memberId is required" });
+    if (!memberId || !name || !email) {
+      return res.status(400).json({
+        error: "memberId, name and email are required",
+      });
     }
+
+    const memberObj = { memberId, name, email, phone };
 
     const updatedChapter = await chapterModel.findByIdAndUpdate(
       chapterId,
-      { $addToSet: { members: memberId } },
+      { $addToSet: { members: memberObj } },
       { new: true }
     );
 

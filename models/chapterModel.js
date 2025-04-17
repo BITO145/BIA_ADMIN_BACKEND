@@ -30,8 +30,9 @@ const chapterSchema = new mongoose.Schema(
     // Store only the membership IDs (as strings) to reference users in the membership portal
     members: [
       {
-        type: String,
-        trim: true,
+        memberId: { type: String, required: true }, // membership‑portal user ID
+        name: { type: String, required: true },
+        email: { type: String, required: true }, // optional
       },
     ],
   },
