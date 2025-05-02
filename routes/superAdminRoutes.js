@@ -8,6 +8,7 @@ import {
   getChapters,
   getEvents,
   getSubAdmins,
+  updateMemberRole,
 } from "../controllers/superAdminController.js";
 
 const router = Router();
@@ -32,5 +33,7 @@ router.get("/get-chapter", protect, getChapters);
 
 //get events
 router.get("/get-event", protect, getEvents);
+
+router.post("/updaterole", protect, updateMemberRole);
 
 export default router;

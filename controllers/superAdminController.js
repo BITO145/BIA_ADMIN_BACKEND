@@ -6,6 +6,10 @@ import {
   sendEventToWebhook,
   sendChapterToWebhook,
 } from "../utils/webhookSender.js";
+import axios from "axios";
+
+const memUri = process.env.MEM_URI;
+console.log(memUri);
 
 // ✅ Create Subadmin
 export const createSubAdmin = async (req, res) => {
@@ -273,3 +277,35 @@ export const getEvents = async (req, res) => {
   }
 };
 
+// ✅  handle the role update in Admin Dashboard
+export const updateMemberRole = async (req, res) => {
+  try {
+    const { memberId, chapterId, newRole } = req.body;
+    console.log("Received body:", req.body);
+
+    if (!memberId || !chapterId || !newRole) {
+      return res.status(400).json({
+        error: "memberId, chapterId and newRole are all required",
+      });
+    }
+
+    // forward the chapter-scoped update to the membership portal
+    const membershipPortalWebhookUrl = `${memUri}/webhook/updateRole`;
+    const webhookResponse = await axios.post(membershipPortalWebhookUrl, {
+      memberId,
+      chapterId,
+      newRole,
+    });
+
+    if (webhookResponse.status === 200) {
+      return res.status(200).json({
+        message: "Webhook sent successfully",
+      });
+    } else {
+      throw new Error("Membership portal returned non-200");
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
