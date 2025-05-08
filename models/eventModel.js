@@ -30,10 +30,8 @@ const eventSchema = new mongoose.Schema(
       type: String,
     },
     membershipRequired: {
-      type: String,
-      required: true,
-      enum: ["free", "silver", "gold", "diamond", "platinum"],
-      default: "free",
+      type: Boolean,
+      default: false,
     },
     // Reference to the chapter the event belongs to
     chapter: {
