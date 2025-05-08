@@ -9,7 +9,6 @@ import {
 import axios from "axios";
 
 const memUri = process.env.MEM_URI;
-console.log(memUri);
 
 // ✅ Create Subadmin
 export const createSubAdmin = async (req, res) => {
