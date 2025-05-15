@@ -5,6 +5,7 @@ import {
   createEvent,
   createSubAdmin,
   deleteChapter,
+  deleteEvent,
   enrollMember,
   getChapters,
   getEvents,
@@ -40,5 +41,8 @@ router.post("/updaterole", protect, updateMemberRole);
 
 //delete chapter
 router.post("/delChap/:chapterId", protect, deleteChapter);
+
+//delete event
+router.post("/delEvent/:eventId", protect, deleteEvent);
 
 export default router;

@@ -9,6 +9,7 @@ import {
 import axios from "axios";
 
 const memUri = process.env.MEM_URI;
+console.log(memUri);
 
 // ✅ Create Subadmin
 export const createSubAdmin = async (req, res) => {
@@ -148,6 +149,52 @@ export const deleteChapter = async (req, res) => {
   }
 };
 
+// ✅ Delete Event
+export const deleteEvent = async (req, res) => {
+  const { eventId } = req.params;
+
+  if (!eventId) {
+    return res.status(400).json({ error: "eventId is required." });
+  }
+
+  try {
+    // Step 1: Find the event
+    const event = await eventModel.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ error: "Event not found." });
+    }
+
+    const chapterId = event.chapter;
+
+    // Step 2: Delete the event from Event collection (admin DB)
+    await eventModel.findByIdAndDelete(eventId);
+
+    // Step 3: Remove the event from the Chapter's events array
+    await chapterModel.findByIdAndUpdate(
+      chapterId,
+      { $pull: { events: eventId } },
+      { new: true }
+    );
+
+    console.log("✅ Event removed locally (Event & Chapter models)");
+    console.log("-->", eventId, chapterId);
+    // Step 4: Send request to membership portal to delete the same event
+    await axios.post(`${memUri}/webhook/deleteEvent`, {
+      eventId,
+      chapterId, // send the MongoDB ObjectId from admin portal
+    });
+
+    res
+      .status(200)
+      .json({ message: "Event deleted successfully from both systems." });
+  } catch (error) {
+    console.error("❌ Error deleting event:", error.message);
+    res
+      .status(500)
+      .json({ error: "Internal server error while deleting event." });
+  }
+};
+
 // ✅ Create Event + Webhook
 export const createEvent = async (req, res) => {
   try {
@@ -211,7 +258,7 @@ export const createEvent = async (req, res) => {
 
     // Send webhook to membership portal
     await sendEventToWebhook({
-      _id: newEvent._id,
+      hmrsEventId: newEvent._id,
       eventName,
       eventStartTime: eventStartDateTime,
       eventEndTime: eventEndDateTime,
