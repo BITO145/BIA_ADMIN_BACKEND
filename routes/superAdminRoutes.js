@@ -12,6 +12,7 @@ import {
   getSubAdmins,
   updateMemberRole,
 } from "../controllers/superAdminController.js";
+import upload from "../middlewares/multer.js";
 
 const router = Router();
 
@@ -19,10 +20,10 @@ const router = Router();
 router.post("/sub-admin", requireFeature(), createSubAdmin); //tested
 
 //create chapter
-router.post("/chapter", requireFeature("addChapter"), createChapter); //tested
+router.post("/chapter", requireFeature("addChapter"), upload.single('image'), createChapter); //tested
 
 //create event
-router.post("/event", requireFeature("addEvent"), createEvent); //tested
+router.post("/event", requireFeature("addEvent"), upload.single('image'), createEvent); //tested
 
 //enroll member
 router.post("/chapters/:chapterId/enrollMember", enrollMember);

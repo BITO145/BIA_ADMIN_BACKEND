@@ -7,7 +7,7 @@ const mem_uri = process.env.MEM_URI;
 export const sendEventToWebhook = async (eventData) => {
   try {
     const response = await axios.post(
-      "http://localhost:8000/webhook/events/receive",
+      `${mem_uri}/webhook/events/receive`,
       eventData
     );
     console.log("✅ Webhook sent:", response.status);
