@@ -5,7 +5,6 @@ dotenv.config();
 
 const mem_uri = process.env.MEM_URI;
 export const sendEventToWebhook = async (eventData) => {
-  console.log(eventData);
   try {
     const response = await axios.post(
       "http://localhost:8000/webhook/events/receive",

@@ -106,6 +106,48 @@ export const createChapter = async (req, res) => {
   }
 };
 
+// ✅ Delete Chapter
+export const deleteChapter = async (req, res) => {
+  try {
+    const { chapterId } = req.params;
+
+    if (!chapterId) {
+      return res.status(400).json({ error: "chapterId is required." });
+    }
+
+    // Check if chapter exists
+    const chapter = await chapterModel.findById(chapterId);
+
+    if (!chapter) {
+      return res.status(404).json({ error: "Chapter not found." });
+    }
+
+    // Delete the chapter locally (admin panel DB)
+    await chapterModel.findByIdAndDelete(chapterId);
+
+    // Send webhook to membership portal to delete chapter there
+    const membershipPortalWebhookUrl = `${memUri}/webhook/deleteChapter`;
+    const webhookResponse = await axios.post(membershipPortalWebhookUrl, {
+      hmrsChapterId: chapter._id.toString(),
+    });
+
+    if (webhookResponse.status !== 200) {
+      console.warn("Chapter deleted locally, but webhook failed.");
+      return res.status(207).json({
+        message:
+          "Chapter deleted locally, but webhook to membership portal failed.",
+      });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Chapter deleted successfully from both systems." });
+  } catch (error) {
+    console.error("Error deleting chapter:", error);
+    res.status(500).json({ error: "Server error while deleting chapter." });
+  }
+};
+
 // ✅ Create Event + Webhook
 export const createEvent = async (req, res) => {
   try {
