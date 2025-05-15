@@ -21,10 +21,6 @@ const chapterSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    image: {
-      type: String,
-      required: true,
-    },
     events: [
       {
         type: mongoose.Schema.Types.ObjectId,

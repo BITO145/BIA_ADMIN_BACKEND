@@ -6,12 +6,10 @@ import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/authRoutes.js";
 import superAdminRoutes from "./routes/superAdminRoutes.js";
 import connectDB from "./db/db.js";
-import connectToCloudinary from "./config/cloudinary.js";
 
 dotenv.config();
 
 connectDB();
-connectToCloudinary();
 
 const app = express();
 

@@ -7,10 +7,9 @@ import {
   sendChapterToWebhook,
 } from "../utils/webhookSender.js";
 import axios from "axios";
-import cloudinary from "cloudinary";
-import fs from "fs";
 
 const memUri = process.env.MEM_URI;
+console.log(memUri);
 
 // ✅ Create Subadmin
 export const createSubAdmin = async (req, res) => {
@@ -58,7 +57,6 @@ export const createChapter = async (req, res) => {
     if (!req.user) {
       return res.status(401).json({ error: "Not authenticated" });
     }
-
     if (
       req.user.role !== "superadmin" &&
       !req.user.allowedFeatures?.some(
@@ -77,23 +75,12 @@ export const createChapter = async (req, res) => {
       });
     }
 
-    let chapterImageUrl = null;
-
-    if (req.file) {
-      const result = await cloudinary.v2.uploader.upload(req.file.path, {
-        folder: "chapter-images",
-      });
-      chapterImageUrl = result.secure_url;
-
-      fs.unlinkSync(req.file.path);
-    }
-
+    // Create the chapter
     const newChapter = await chapterModel.create({
       chapterName,
       zone,
       description,
       chapterLeadName,
-      image: chapterImageUrl,
     });
 
     await sendChapterToWebhook({
@@ -102,7 +89,6 @@ export const createChapter = async (req, res) => {
       zone: newChapter.zone,
       description: newChapter.description,
       chapterLeadName: newChapter.chapterLeadName,
-      image: newChapter.image,
       events: newChapter.events,
       members: newChapter.members.map((m) => ({
         memberId: m.memberId,
@@ -112,19 +98,11 @@ export const createChapter = async (req, res) => {
     });
 
     res.status(201).json({
-      success: true,
       message: "Chapter created successfully",
       chapter: newChapter,
     });
   } catch (error) {
     console.error("Error creating chapter:", error);
-
-    if (req.file?.path) {
-      fs.unlink(req.file.path, (err) => {
-        if (err) console.error("Failed to delete uploaded file:", err);
-      });
-    }
-
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -246,23 +224,10 @@ export const createEvent = async (req, res) => {
       });
     }
 
-    let eventImageUrl = null;
-
-    if (req.file) {
-      const result = await cloudinary.v2.uploader.upload(req.file.path, {
-        folder: "event-images",
-      });
-      eventImageUrl = result.secure_url;
-
-      fs.unlinkSync(req.file.path);
-    }
-
-    if (!eventImageUrl) {
-      return res.status(400).json({ error: "Event image is required." });
-    }
-
-    // Extract the date portion
+    // Extract the date portion (e.g., "2025-05-01" from "2025-05-01T00:00:00.000Z" or "2025-05-01")
     const datePortion = eventDate.split("T")[0];
+
+    // Combine the date portion with the provided time strings
     const eventStartDateTime = new Date(`${datePortion}T${eventStartTime}:00Z`);
     const eventEndDateTime = new Date(`${datePortion}T${eventEndTime}:00Z`);
 
@@ -272,7 +237,7 @@ export const createEvent = async (req, res) => {
       return res.status(404).json({ error: "Chapter not found." });
     }
 
-    // Create the event
+    // Create the event: here, eventDate remains as received (or you can also derive it from datePortion)
     const newEvent = await eventModel.create({
       eventName,
       eventStartTime: eventStartDateTime,
@@ -282,17 +247,16 @@ export const createEvent = async (req, res) => {
       description,
       membershipRequired,
       chapter,
-      image: eventImageUrl,
     });
 
-    // Push event into the chapter
+    // Update the chapter document to include the new event
     await chapterModel.findByIdAndUpdate(
       chapter,
       { $push: { events: newEvent._id } },
       { new: true }
     );
 
-    // Send webhook
+    // Send webhook to membership portal
     await sendEventToWebhook({
       hmrsEventId: newEvent._id,
       eventName,
@@ -302,24 +266,14 @@ export const createEvent = async (req, res) => {
       location,
       description,
       membershipRequired,
-      chapter: chapterDoc._id,
-      image: eventImageUrl,
+      chapter: chapterDoc._id, // send chapter's ObjectId
     });
 
-    res.status(201).json({
-      success: true,
-      message: "Event created successfully",
-      event: newEvent,
-    });
+    res
+      .status(201)
+      .json({ message: "Event created successfully", event: newEvent });
   } catch (error) {
     console.error("Error creating event:", error);
-
-    if (req.file?.path) {
-      fs.unlink(req.file.path, (err) => {
-        if (err) console.error("Failed to delete uploaded file:", err);
-      });
-    }
-
     res.status(500).json({ error: "Server error" });
   }
 };
