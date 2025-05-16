@@ -330,15 +330,15 @@ export const createEvent = async (req, res) => {
 export const enrollMember = async (req, res) => {
   try {
     const { chapterId } = req.params;
-    const { memberId, name, email, phone } = req.body;
+    const { memberId, name, email, phone, role } = req.body;
 
-    if (!memberId || !name || !email) {
+    if (!memberId || !name || !email || !role) {
       return res.status(400).json({
-        error: "memberId, name and email are required",
+        error: "memberId, name, email and role are required",
       });
     }
 
-    const memberObj = { memberId, name, email, phone };
+    const memberObj = { memberId, name, email, phone, role };
 
     const updatedChapter = await chapterModel.findByIdAndUpdate(
       chapterId,
@@ -424,6 +424,22 @@ export const updateMemberRole = async (req, res) => {
         error: "memberId, chapterId and newRole are all required",
       });
     }
+
+    const chapter = await chapterModel.findById(chapterId);
+    if (!chapter) {
+      return res.status(404).json({ error: "Chapter not found" });
+    }
+    const memberIndex = chapter.members.findIndex(
+      (member) => member.memberId === memberId
+    );
+
+    if (memberIndex === -1) {
+      return res.status(404).json({ error: "Member not found in chapter" });
+    }
+
+    // Update the member's role in the chapter
+    chapter.members[memberIndex].role = newRole;
+    await chapter.save();
 
     // forward the chapter-scoped update to the membership portal
     const membershipPortalWebhookUrl = `${memUri}/webhook/updateRole`;
