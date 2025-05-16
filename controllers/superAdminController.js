@@ -162,9 +162,10 @@ export const deleteChapter = async (req, res) => {
       });
     }
 
-    res
-      .status(200)
-      .json({ message: "Chapter deleted successfully from both systems." });
+    res.status(200).json({
+      success: true,
+      message: "Chapter deleted successfully from both systems.",
+    });
   } catch (error) {
     console.error("Error deleting chapter:", error);
     res.status(500).json({ error: "Server error while deleting chapter." });
@@ -206,9 +207,10 @@ export const deleteEvent = async (req, res) => {
       chapterId, // send the MongoDB ObjectId from admin portal
     });
 
-    res
-      .status(200)
-      .json({ message: "Event deleted successfully from both systems." });
+    res.status(200).json({
+      success: true,
+      message: "Event deleted successfully from both systems.",
+    });
   } catch (error) {
     console.error("❌ Error deleting event:", error.message);
     res
