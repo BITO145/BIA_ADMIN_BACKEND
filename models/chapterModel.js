@@ -21,6 +21,10 @@ const chapterSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    image: {
+      type: String,
+      required: true,
+    },
     events: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -33,6 +37,7 @@ const chapterSchema = new mongoose.Schema(
         memberId: { type: String, required: true },
         name: { type: String, required: true },
         email: { type: String, required: true },
+        role: { type: String, required: true, default: "member" },
       },
     ],
   },
