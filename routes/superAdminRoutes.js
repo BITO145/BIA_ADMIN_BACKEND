@@ -3,6 +3,7 @@ import { protect, requireFeature } from "../middlewares/protect.js";
 import {
   createChapter,
   createEvent,
+  createOpp,
   createSubAdmin,
   deleteChapter,
   deleteEvent,
@@ -20,10 +21,20 @@ const router = Router();
 router.post("/sub-admin", requireFeature(), createSubAdmin); //tested
 
 //create chapter
-router.post("/chapter", requireFeature("addChapter"), upload.single('image'), createChapter); //tested
+router.post(
+  "/chapter",
+  requireFeature("addChapter"),
+  upload.single("image"),
+  createChapter
+); //tested
 
 //create event
-router.post("/event", requireFeature("addEvent"), upload.single('image'), createEvent); //tested
+router.post(
+  "/event",
+  requireFeature("addEvent"),
+  upload.single("image"),
+  createEvent
+); //tested
 
 //enroll member
 router.post("/chapters/:chapterId/enrollMember", enrollMember);
@@ -45,5 +56,8 @@ router.post("/delChap/:chapterId", protect, deleteChapter);
 
 //delete event
 router.post("/delEvent/:eventId", protect, deleteEvent);
+
+//create opp
+router.post("/createOpp", createOpp);
 
 export default router;

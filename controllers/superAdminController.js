@@ -1,6 +1,7 @@
 import centralUserModel from "../models/centralUserModel.js";
 import chapterModel from "../models/chapterModel.js";
 import eventModel from "../models/eventModel.js";
+import opportunityModel from "../models/opportunityModel.js";
 import bcrypt from "bcrypt";
 import {
   sendEventToWebhook,
@@ -172,53 +173,6 @@ export const deleteChapter = async (req, res) => {
   }
 };
 
-// ✅ Delete Event
-export const deleteEvent = async (req, res) => {
-  const { eventId } = req.params;
-
-  if (!eventId) {
-    return res.status(400).json({ error: "eventId is required." });
-  }
-
-  try {
-    // Step 1: Find the event
-    const event = await eventModel.findById(eventId);
-    if (!event) {
-      return res.status(404).json({ error: "Event not found." });
-    }
-
-    const chapterId = event.chapter;
-
-    // Step 2: Delete the event from Event collection (admin DB)
-    await eventModel.findByIdAndDelete(eventId);
-
-    // Step 3: Remove the event from the Chapter's events array
-    await chapterModel.findByIdAndUpdate(
-      chapterId,
-      { $pull: { events: eventId } },
-      { new: true }
-    );
-
-    console.log("✅ Event removed locally (Event & Chapter models)");
-    console.log("-->", eventId, chapterId);
-    // Step 4: Send request to membership portal to delete the same event
-    await axios.post(`${memUri}/webhook/deleteEvent`, {
-      eventId,
-      chapterId, // send the MongoDB ObjectId from admin portal
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Event deleted successfully from both systems.",
-    });
-  } catch (error) {
-    console.error("❌ Error deleting event:", error.message);
-    res
-      .status(500)
-      .json({ error: "Internal server error while deleting event." });
-  }
-};
-
 // ✅ Create Event + Webhook
 export const createEvent = async (req, res) => {
   try {
@@ -323,6 +277,53 @@ export const createEvent = async (req, res) => {
     }
 
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+// ✅ Delete Event
+export const deleteEvent = async (req, res) => {
+  const { eventId } = req.params;
+
+  if (!eventId) {
+    return res.status(400).json({ error: "eventId is required." });
+  }
+
+  try {
+    // Step 1: Find the event
+    const event = await eventModel.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ error: "Event not found." });
+    }
+
+    const chapterId = event.chapter;
+
+    // Step 2: Delete the event from Event collection (admin DB)
+    await eventModel.findByIdAndDelete(eventId);
+
+    // Step 3: Remove the event from the Chapter's events array
+    await chapterModel.findByIdAndUpdate(
+      chapterId,
+      { $pull: { events: eventId } },
+      { new: true }
+    );
+
+    console.log("✅ Event removed locally (Event & Chapter models)");
+    console.log("-->", eventId, chapterId);
+    // Step 4: Send request to membership portal to delete the same event
+    await axios.post(`${memUri}/webhook/deleteEvent`, {
+      eventId,
+      chapterId, // send the MongoDB ObjectId from admin portal
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Event deleted successfully from both systems.",
+    });
+  } catch (error) {
+    console.error("❌ Error deleting event:", error.message);
+    res
+      .status(500)
+      .json({ error: "Internal server error while deleting event." });
   }
 };
 
@@ -458,6 +459,53 @@ export const updateMemberRole = async (req, res) => {
     }
   } catch (err) {
     console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ✅ create opportunity
+export const createOpp = async (req, res) => {
+  try {
+    const {
+      oppName,
+      oppDate,
+      location,
+      image,
+      description,
+      membershipRequired,
+    } = req.body;
+
+    const newOpp = new opportunityModel({
+      oppName,
+      oppDate,
+      location,
+      image,
+      description,
+      membershipRequired,
+    });
+
+    const savedOpp = await newOpp.save();
+
+    // 🔁 Webhook to Membership Portal
+    try {
+      await axios.post(`${memUri}/webhook/opportunity`, {
+        hrmsOppId: savedOpp._id.toString(),
+        oppName,
+        oppDate,
+        location,
+        image,
+        description,
+        membershipRequired,
+      });
+    } catch (webhookError) {
+      console.error(
+        "Webhook to membership portal failed:",
+        webhookError.message
+      );
+    }
+
+    res.status(201).json(savedOpp);
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
