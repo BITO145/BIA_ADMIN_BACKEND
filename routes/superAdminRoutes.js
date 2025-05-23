@@ -11,6 +11,7 @@ import {
   getChapters,
   getEvents,
   getSubAdmins,
+  receiveOpportunityEnrollment,
   updateMemberRole,
 } from "../controllers/superAdminController.js";
 import upload from "../middlewares/multer.js";
@@ -38,6 +39,9 @@ router.post(
 
 //enroll member
 router.post("/chapters/:chapterId/enrollMember", enrollMember);
+
+//enroll memeber in opp
+router.post("/webhook/opportunity-enroll", receiveOpportunityEnrollment);
 
 //fetch subadmins
 router.get("/get-subadmin", requireFeature(), getSubAdmins);

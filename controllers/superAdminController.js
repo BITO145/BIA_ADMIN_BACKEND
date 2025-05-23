@@ -258,7 +258,10 @@ export const createEvent = async (req, res) => {
       location,
       description,
       membershipRequired,
-      chapter: chapterDoc._id,
+      chapter: {
+        chapterId: chapterDoc._id.toString(),
+        chapterName: chapterDoc.chapterName,
+      },
       image: eventImageUrl,
     });
 
@@ -507,5 +510,43 @@ export const createOpp = async (req, res) => {
     res.status(201).json(savedOpp);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+// ✅ receive opportunity
+export const receiveOpportunityEnrollment = async (req, res) => {
+  try {
+    const { hrmsOppId, memberId, name, email, phone, membershipLevel } =
+      req.body;
+
+    const opportunity = await opportunityModel.findById(hrmsOppId);
+    if (!opportunity) {
+      return res
+        .status(404)
+        .json({ error: "Opportunity not found in admin portal." });
+    }
+
+    // Prevent duplicate
+    const alreadyExists = opportunity.interestedMembers.some(
+      (m) => m.memberId === memberId
+    );
+
+    if (!alreadyExists) {
+      opportunity.interestedMembers.push({
+        memberId,
+        name,
+        email,
+        phone,
+        membershipLevel,
+      });
+      await opportunity.save();
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Enrollment synced with admin portal." });
+  } catch (error) {
+    console.error("❌ Webhook Enrollment Sync Error:", error);
+    return res.status(500).json({ error: "Admin sync failed." });
   }
 };
