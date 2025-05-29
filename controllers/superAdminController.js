@@ -67,10 +67,10 @@ export const createChapter = async (req, res) => {
       )
     ) {
       return res
-        .status(403)
-        .json({ error: "No permission to create a chapter" });
+      .status(403)
+      .json({ error: "No permission to create a chapter" });
     }
-
+    
     const { chapterName, zone, description, chapterLeadName } = req.body;
     if (!chapterName || !zone || !chapterLeadName) {
       return res.status(400).json({
@@ -79,7 +79,6 @@ export const createChapter = async (req, res) => {
     }
 
     let chapterImageUrl = null;
-
     if (req.file) {
       const result = await cloudinary.v2.uploader.upload(req.file.path, {
         folder: "chapter-images",
