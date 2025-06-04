@@ -3,6 +3,14 @@ import multer from 'multer';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
+// import fs from 'fs';
+// const uploadDir = path.join(process.cwd(), 'uploads');
+
+// // Auto-create uploads folder if it doesn't exist
+// if (!fs.existsSync(uploadDir)) {
+//   fs.mkdirSync(uploadDir, { recursive: true });
+// }
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/'); // make sure 'uploads' folder exists
