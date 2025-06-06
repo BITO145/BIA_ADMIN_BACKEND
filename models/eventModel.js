@@ -8,6 +8,15 @@ const eventSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    slots: {
+      type: Number,
+      required: true,
+    },
+    link: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     eventStartTime: {
       type: Date,
       required: true,
@@ -43,6 +52,13 @@ const eventSchema = new mongoose.Schema(
       ref: "Chapter",
       required: true,
     },
+    members: [
+      {
+        memberId: { type: String, required: true },
+        name: { type: String, required: true },
+        email: { type: String, required: true },
+      },
+    ],
   },
   { timestamps: true }
 );
