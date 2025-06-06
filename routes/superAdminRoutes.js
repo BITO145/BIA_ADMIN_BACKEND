@@ -8,6 +8,7 @@ import {
   deleteChapter,
   deleteEvent,
   enrollMember,
+  enrollMemberInEvent,
   getChapters,
   getEvents,
   getSubAdmins,
@@ -39,6 +40,9 @@ router.post(
 
 //enroll member
 router.post("/chapters/:chapterId/enrollMember", enrollMember);
+
+//enroll member in event
+router.post("/events/:eventId/enrollMember", enrollMemberInEvent);
 
 //enroll memeber in opp
 router.post("/webhook/opportunity-enroll", receiveOpportunityEnrollment);

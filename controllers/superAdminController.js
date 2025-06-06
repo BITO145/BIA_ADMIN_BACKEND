@@ -67,10 +67,10 @@ export const createChapter = async (req, res) => {
       )
     ) {
       return res
-      .status(403)
-      .json({ error: "No permission to create a chapter" });
+        .status(403)
+        .json({ error: "No permission to create a chapter" });
     }
-    
+
     const { chapterName, zone, description, chapterLeadName } = req.body;
     if (!chapterName || !zone || !chapterLeadName) {
       return res.status(400).json({
@@ -177,6 +177,8 @@ export const createEvent = async (req, res) => {
   try {
     const {
       eventName,
+      slots,
+      link,
       eventStartTime,
       eventEndTime,
       eventDate,
@@ -189,6 +191,7 @@ export const createEvent = async (req, res) => {
     // Validate required fields
     if (
       !eventName ||
+      !link ||
       !eventStartTime ||
       !eventEndTime ||
       !eventDate ||
@@ -199,6 +202,14 @@ export const createEvent = async (req, res) => {
         error:
           "Please provide eventName, eventStartTime, eventEndTime, eventDate, location, and chapter.",
       });
+    }
+
+    if (membershipRequired === true || membershipRequired === "true") {
+      if (!slots || slots <= 0) {
+        return res.status(400).json({
+          error: "Membership-required events must have slots greater than 0.",
+        });
+      }
     }
 
     let eventImageUrl = null;
@@ -230,6 +241,8 @@ export const createEvent = async (req, res) => {
     // Create the event
     const newEvent = await eventModel.create({
       eventName,
+      slots,
+      link,
       eventStartTime: eventStartDateTime,
       eventEndTime: eventEndDateTime,
       eventDate: new Date(eventDate),
@@ -251,6 +264,8 @@ export const createEvent = async (req, res) => {
     await sendEventToWebhook({
       hmrsEventId: newEvent._id,
       eventName,
+      slots: membershipRequired ? slots : null,
+      link,
       eventStartTime: eventStartDateTime,
       eventEndTime: eventEndDateTime,
       eventDate: new Date(eventDate),
@@ -359,6 +374,75 @@ export const enrollMember = async (req, res) => {
     });
   } catch (error) {
     console.error("Error enrolling member in chapter:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const enrollMemberInEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const { memberId, name, email, phone } = req.body;
+
+    if (!memberId || !name || !email) {
+      return res.status(400).json({
+        error: "memberId, name, email are required",
+      });
+    }
+
+    const event = await eventModel.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Check if already enrolled
+    const alreadyEnrolled = event.members.some(
+      (m) => m.memberId.toString() === memberId.toString()
+    );
+    if (alreadyEnrolled) {
+      return res
+        .status(409)
+        .json({ error: "Member is already enrolled in this event" });
+    }
+
+    // Handle slot logic for membership-required events
+    const isMembershipRequired =
+      event.membershipRequired === true || event.membershipRequired === "true";
+
+    if (isMembershipRequired) {
+      if (typeof event.slots !== "number" || event.slots <= 0) {
+        return res
+          .status(400)
+          .json({ error: "No available slots for this event" });
+      }
+    }
+
+    // Prepare update
+    const update = {
+      $addToSet: {
+        members: {
+          memberId,
+          name,
+          email,
+          phone,
+        },
+      },
+    };
+
+    if (isMembershipRequired) {
+      update.$inc = { slots: -1 };
+    }
+
+    const updatedEvent = await eventModel.findByIdAndUpdate(eventId, update, {
+      new: true,
+    });
+
+    res.status(200).json({
+      message: "Member enrolled in event successfully",
+      event: updatedEvent,
+    });
+  } catch (error) {
+    console.error("Error enrolling member in event:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
