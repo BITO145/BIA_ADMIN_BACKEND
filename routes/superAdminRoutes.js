@@ -11,6 +11,7 @@ import {
   enrollMemberInEvent,
   getChapters,
   getEvents,
+  getOpp,
   getSubAdmins,
   receiveOpportunityEnrollment,
   updateMemberRole,
@@ -56,6 +57,9 @@ router.get("/get-chapter", protect, getChapters);
 //get events
 router.get("/get-event", protect, getEvents);
 
+//get opp
+router.get("/get-opp", protect, getOpp);
+
 //update user role
 router.post("/updaterole", protect, updateMemberRole);
 
@@ -66,6 +70,13 @@ router.post("/delChap/:chapterId", protect, deleteChapter);
 router.post("/delEvent/:eventId", protect, deleteEvent);
 
 //create opp
-router.post("/createOpp", createOpp);
+router.post(
+  "/createOpp",
+  upload.single("image"),
+  protect,
+  requireFeature("addOpp"),
+
+  createOpp
+);
 
 export default router;

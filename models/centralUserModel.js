@@ -45,6 +45,7 @@ const centralUserSchema = new mongoose.Schema(
         // Example default features (optional)
         { feature: "addEvent", allowed: true },
         { feature: "addChapter", allowed: true },
+        { feature: "addOpp", allowed: true },
         // { feature: "addSubAdmin", allowed: true },
       ],
     },

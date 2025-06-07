@@ -552,34 +552,60 @@ export const updateMemberRole = async (req, res) => {
 // ✅ create opportunity
 export const createOpp = async (req, res) => {
   try {
-    const {
-      oppName,
-      oppDate,
-      location,
-      image,
-      description,
-      membershipRequired,
-    } = req.body;
+    // console.log(req.user);
+    // console.log("th", user);
+    if (!req.user) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
 
-    const newOpp = new opportunityModel({
+    if (
+      req.user.role !== "superadmin" &&
+      !req.user.allowedFeatures?.some(
+        (feature) => feature.feature === "addOpportunity" && feature.allowed
+      )
+    ) {
+      return res
+        .status(403)
+        .json({ error: "No permission to create an opportunity" });
+    }
+
+    const { oppName, oppDate, location, description, membershipRequired } =
+      req.body;
+    const imageFile = req.file;
+
+    if (!oppName || !oppDate || !location || !description || !imageFile) {
+      return res
+        .status(400)
+        .json({ error: "All required fields must be provided." });
+    }
+
+    // ⬆️ Upload to Cloudinary
+    const result = await cloudinary.v2.uploader.upload(imageFile.path, {
+      folder: "opportunity-images",
+    });
+    const imageUrl = result.secure_url;
+
+    // 🧹 Clean up temp file
+    fs.unlinkSync(imageFile.path);
+
+    // 📌 Create in DB
+    const newOpp = await opportunityModel.create({
       oppName,
       oppDate,
       location,
-      image,
+      image: imageUrl,
       description,
       membershipRequired,
     });
 
-    const savedOpp = await newOpp.save();
-
     // 🔁 Webhook to Membership Portal
     try {
       await axios.post(`${memUri}/webhook/opportunity`, {
-        hrmsOppId: savedOpp._id.toString(),
+        hrmsOppId: newOpp._id.toString(),
         oppName,
         oppDate,
         location,
-        image,
+        image: imageUrl,
         description,
         membershipRequired,
       });
@@ -590,9 +616,34 @@ export const createOpp = async (req, res) => {
       );
     }
 
-    res.status(201).json(savedOpp);
+    res.status(201).json({
+      success: true,
+      message: "Opportunity created successfully",
+      opportunity: newOpp,
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error creating opportunity:", err.message);
+    if (req.file?.path) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error("Failed to delete uploaded file:", err);
+      });
+    }
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// ✅ get opportunity
+export const getOpp = async (req, res) => {
+  try {
+    const opportunities = await opportunityModel.find().sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      opportunities,
+    });
+  } catch (error) {
+    console.error("Error fetching opportunities:", error.message);
+    res.status(500).json({ error: "Failed to fetch opportunities" });
   }
 };
 
