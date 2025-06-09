@@ -8,7 +8,11 @@ const oppSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    oppDate: {
+    startDate: {
+      type: Date,
+      required: true,
+    },
+    endDate: {
       type: Date,
       required: true,
     },
