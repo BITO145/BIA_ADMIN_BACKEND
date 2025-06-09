@@ -569,11 +569,17 @@ export const createOpp = async (req, res) => {
         .json({ error: "No permission to create an opportunity" });
     }
 
-    const { oppName, oppDate, location, description, membershipRequired } =
-      req.body;
+    const {
+      oppName,
+      startDate,
+      endDate,
+      location,
+      description,
+      membershipRequired,
+    } = req.body;
     const imageFile = req.file;
 
-    if (!oppName || !oppDate || !location || !description || !imageFile) {
+    if (!oppName || !startDate || !endDate || !location || !description || !imageFile) {
       return res
         .status(400)
         .json({ error: "All required fields must be provided." });
@@ -591,7 +597,8 @@ export const createOpp = async (req, res) => {
     // 📌 Create in DB
     const newOpp = await opportunityModel.create({
       oppName,
-      oppDate,
+      startDate,
+      endDate,
       location,
       image: imageUrl,
       description,
@@ -603,7 +610,8 @@ export const createOpp = async (req, res) => {
       await axios.post(`${memUri}/webhook/opportunity`, {
         hrmsOppId: newOpp._id.toString(),
         oppName,
-        oppDate,
+        startDate,
+        endDate,
         location,
         image: imageUrl,
         description,
