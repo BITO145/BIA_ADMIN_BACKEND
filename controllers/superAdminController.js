@@ -191,7 +191,6 @@ export const createEvent = async (req, res) => {
     // Validate required fields
     if (
       !eventName ||
-      !link ||
       !eventStartTime ||
       !eventEndTime ||
       !eventDate ||
@@ -579,7 +578,14 @@ export const createOpp = async (req, res) => {
     } = req.body;
     const imageFile = req.file;
 
-    if (!oppName || !startDate || !endDate || !location || !description || !imageFile) {
+    if (
+      !oppName ||
+      !startDate ||
+      !endDate ||
+      !location ||
+      !description ||
+      !imageFile
+    ) {
       return res
         .status(400)
         .json({ error: "All required fields must be provided." });
