@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 // Signup controller for superadmin only (remains unchanged)
 export const signup = async (req, res) => {
   try {
-    const { name, email, password, username, role } = req.body;
+    const { name, email, password, username, role } = req.body; //
     if (role !== "superadmin") {
       return res.status(401).json({ error: "Only superadmin can sign up" });
     }
@@ -41,11 +41,9 @@ export const login = async (req, res) => {
 
     // Check if user role is allowed to login
     if (!["superadmin", "subadmin"].includes(user.role)) {
-      return res
-        .status(403)
-        .json({
-          error: "Only superadmin or subadmin roles are allowed to login",
-        });
+      return res.status(403).json({
+        error: "Only superadmin or subadmin roles are allowed to login",
+      });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);

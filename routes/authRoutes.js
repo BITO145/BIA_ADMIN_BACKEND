@@ -9,6 +9,8 @@ import { protect } from "../middlewares/protect.js";
 
 const router = Router();
 
+//https://localhost:3000/signup/auth
+
 //signup
 router.post("/signup", signup); //tested
 
