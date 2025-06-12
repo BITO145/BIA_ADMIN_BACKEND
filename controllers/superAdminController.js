@@ -323,8 +323,6 @@ export const deleteEvent = async (req, res) => {
       { new: true }
     );
 
-    console.log("✅ Event removed locally (Event & Chapter models)");
-    console.log("-->", eventId, chapterId);
     // Step 4: Send request to membership portal to delete the same event
     await axios.post(`${memUri}/webhook/deleteEvent`, {
       eventId,
