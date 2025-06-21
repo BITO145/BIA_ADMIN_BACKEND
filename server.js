@@ -21,6 +21,9 @@ app.use(
       "http://localhost:5173",
       "http://localhost:8000",
       "http://localhost:5174",
+      "https://bia-admin-frontend.vercel.app",
+
+      
     ],
     credentials: true,
   })
