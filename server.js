@@ -43,8 +43,8 @@ const apiLimiter = rateLimit({
   message: "Too many requests from this IP, please try again after 15 minutes",
 });
 
-app.use("/auth", apiLimiter, authRoutes);
-app.use("/sa", apiLimiter, superAdminRoutes);
+app.use("/auth", authRoutes);
+app.use("/sa", superAdminRoutes);
 
 // Start the server
 const PORT = process.env.PORT;
