@@ -60,6 +60,7 @@ export const login = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // use true in production
       maxAge: 24 * 60 * 60 * 1000, // 1 day
+      sameSite: "None",
     });
     const userData = {
       id: user._id,
@@ -99,7 +100,7 @@ export const logout = (req, res) => {
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "None",
       path: "/", // Ensure this matches the login cookie settings
     });
     res.status(200).json({ message: "Logout successful" });
