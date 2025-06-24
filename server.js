@@ -22,7 +22,7 @@ app.use(
       "http://localhost:8000",
       "http://localhost:5174",
       "https://bia-admin-frontend.vercel.app",
-      "https://16.171.5.177:4000",
+      "https://www.bitoindustriesassociation.com",
       "https://bito-membership-frontend-ilwd.vercel.app",
     ],
     credentials: true,
