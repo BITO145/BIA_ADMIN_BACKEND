@@ -23,7 +23,9 @@ app.use(
       "http://localhost:5174",
       "https://bia-admin-frontend.vercel.app",
       "https://www.bitoindustriesassociation.com",
-      "https://bito-membership-frontend-ilwd.vercel.app",
+      "https://bitoindustriesassociation.com",
+      "https://www.bitoindustriesassociation.com/api",
+      // "https://bito-membership-frontend-ilwd.vercel.app",
     ],
     credentials: true,
   })
