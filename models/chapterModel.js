@@ -25,6 +25,10 @@ const chapterSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    membershipRequired: {
+      type: Boolean,
+      default: false,
+    },
     events: [
       {
         type: mongoose.Schema.Types.ObjectId,

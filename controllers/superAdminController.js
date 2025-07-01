@@ -71,8 +71,18 @@ export const createChapter = async (req, res) => {
         .json({ error: "No permission to create a chapter" });
     }
 
-    const { chapterName, zone, description, chapterLeadName } = req.body;
-    if (!chapterName || !zone || !chapterLeadName) {
+    const {
+      chapterName,
+      zone,
+      description,
+      chapterLeadName,
+      membershipRequired,
+    } = req.body;
+
+    const isMembershipRequired =
+      membershipRequired === true || membershipRequired === "true";
+
+    if (!chapterName || !zone || !chapterLeadName || !membershipRequired) {
       return res.status(400).json({
         error: "chapterName, zone, and chapterLeadName are required.",
       });
@@ -94,6 +104,7 @@ export const createChapter = async (req, res) => {
       description,
       chapterLeadName,
       image: chapterImageUrl,
+      membershipRequired: isMembershipRequired,
     });
 
     await sendChapterToWebhook({
@@ -104,6 +115,7 @@ export const createChapter = async (req, res) => {
       chapterLeadName: newChapter.chapterLeadName,
       image: newChapter.image,
       events: newChapter.events,
+      membershipRequired: newChapter.membershipRequired,
       members: newChapter.members.map((m) => ({
         memberId: m.memberId,
         name: m.name,
